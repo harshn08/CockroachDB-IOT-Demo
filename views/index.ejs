@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleet Tracker</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="mb-4">Fleet Tracker</h1>
+    <!-- Map container -->
+    <div id="map"></div>
+  </div>
+
+  <!-- Bootstrap JS and Leaflet JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize the map with focus on North America
+    var map = L.map('map').setView([37.0902, -95.7129], 4);
+
+    // Add tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Get vehicle locations from the server
+    function updateMap() {
+        fetch('/vehicles')
+        .then(response => response.json())
+        .then(data => {
+
+            // Clear existing markers from the map
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            data.forEach(vehicle => {
+            // Create a marker for each vehicle
+            var vehicleMarker = L.marker([vehicle.latitude, vehicle.longitude]).addTo(map);
+
+            // Add popup with vehicle information
+            vehicleMarker.bindPopup('<b>Vehicle ID:</b> ' + vehicle.vehicleid + '<br><b>Fleet Name:</b> ' + vehicle.fleetname + '<br> <b> ServiceDue: </b> ' + vehicle.nextduedate);
+
+            // Add click event to redirect to detailed dashboard
+            vehicleMarker.on('click', function() {
+                window.location.href = '/vehicle/' + vehicle.vehicleid + '/dashboard';
+            });
+
+            // Show popup on mouseover
+            vehicleMarker.on('mouseover', function () {
+                this.openPopup();
+            });
+
+            // Close popup on mouseout
+            vehicleMarker.on('mouseout', function () {
+                this.closePopup();
+                });
+            });
+        })
+        .catch(error => console.error('Error fetching vehicle data:', error));
+    }  
+
+    setInterval(updateMap, 2000);
+
+  </script>
+</body>
+</html>

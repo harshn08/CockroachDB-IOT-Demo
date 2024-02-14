@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    /* CSS styles for the table */
+    #diagnosticsTable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #diagnosticsTable th,
+    #diagnosticsTable td {
+        padding: 8px;
+        border: 1px solid #ddd; /* Add border */
+    }
+
+    #diagnosticsTable th {
+        background-color: #f2f2f2; /* Gray background color for headers */
+    }
+
+    #diagnosticsTable tr:nth-child(even) {
+        background-color: #f2f2f2; /* Alternate row background color */
+    }
+
+    #diagnosticsTable tr:hover {
+        background-color: #ddd; /* Hover color */
+    }
+
+</style>
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4">Vehicle Dashboard</h1>
+        <div id="diagnostics" class="card">
+            <div class="card-header">
+                <h5 class="card-title">Diagnostic Information</h5>
+            </div>
+            <div class="card-body">
+               <!--  <div id="diagnosticsTable" class="table-responsive"> -->
+                <table id="diagnosticsTable" class="table table-bordered">    
+                    <!-- Diagnostic information will be dynamically added here -->
+                </table>
+               <!-- </div> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        
+        // Function to fetch diagnostic information based on vehicle ID
+        function fetchDiagnostics(vehicleId) {
+            fetch('/vehicle/' + vehicleId + '/diagnostic') // Fetch diagnostic data for the specific vehicle
+            .then(response => response.json())
+            .then(data => {
+                const diagnosticsTable = document.getElementById('diagnosticsTable');
+                diagnosticsTable.innerHTML = ''; // Clear previous data
+
+                // Create table headers
+                const tableHeaders = `
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Engine Temperature</th>
+                            <th>Oil Pressure</th>
+                            <th>Fuel Level</th>
+                            <th>Tire Pressure</th>
+                            <th>Engine RPM</th>
+                            <th>Transmission Fluid Level</th>
+                            <th>Battery Voltage</th>
+                        </tr>
+                    </thead>`;
+                diagnosticsTable.insertAdjacentHTML('beforeend', tableHeaders);
+
+                // Check if data is an array
+                if (Array.isArray(data)) {
+                    // Iterate over each diagnostic record
+                    data.forEach(diagnostic => {
+                        // Create a new row for each record
+                        const dateTime = new Date(diagnostic.timestamp);
+                        const date = dateTime.toLocaleDateString();
+                        const time = dateTime.toLocaleTimeString();
+                        
+                        const engineTemperature = parseFloat(diagnostic.enginetemperature).toFixed(2);
+                        const oilPressure = parseFloat(diagnostic.oilpressure).toFixed(2);
+                        const fuelLevel = parseFloat(diagnostic.fuellevel).toFixed(2);
+                        const tirePressure = parseFloat(diagnostic.tirepressure).toFixed(2);
+                        const engineRPM = parseFloat(diagnostic.enginerpm).toFixed(2);
+                        const transmissionFluidLevel = parseFloat(diagnostic.transmissionfluidlevel).toFixed(2);
+                        const batteryVoltage = parseFloat(diagnostic.batteryvoltage).toFixed(2);
+
+                        const row = `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${time}</td>
+                                <td>${engineTemperature}</td>
+                                <td>${oilPressure}</td>
+                                <td>${fuelLevel}</td>
+                                <td>${tirePressure}</td>
+                                <td>${engineRPM}</td>
+                                <td>${transmissionFluidLevel}</td>
+                                <td>${batteryVoltage}</td>
+                            </tr>`;
+                        diagnosticsTable.insertAdjacentHTML('beforeend', row);
+                    });
+                } else {
+                    console.error('Invalid data format:', data);
+                }
+            })
+            .catch(error => console.error('Error fetching diagnostic data:', error));
+        }
+
+
+        // Parse the vehicleId from the URL
+        const vehicleId = '<%= vehicleId %>'; // Access the vehicleId from the response data
+
+        // Use the vehicleId as needed
+        console.log("vehicleId : " + vehicleId);
+
+        // Call the fetchDiagnostics function with the extracted vehicleId
+        fetchDiagnostics(vehicleId);
+    </script>
+</body>
+</html>
